@@ -12,14 +12,14 @@
 html,body{margin:0;height:100%;background:#e9e6e1;color:var(--ink);
   font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
 button{font-family:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.frame{max-width:480px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;background:#fff;position:relative;overflow:hidden}
-@media (min-width:600px){.frame{height:calc(100dvh - 32px);margin:16px auto;border-radius:26px;border:10px solid #222}}
+.frame{max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;background:#fff;position:relative}
+@media (min-width:600px){.frame{min-height:calc(100dvh - 32px);margin:16px auto;border-radius:26px;border:10px solid #222;overflow:hidden}}
 .banner{background:#1f2937;color:#fff;font-size:14px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .banner button{background:#374151;border:0;color:#fff;border-radius:8px;padding:6px 10px;font-size:14px}
 .guide{background:#fff4c2;border-bottom:2px solid #f2c200;padding:10px 12px;font-size:18px;font-weight:700;line-height:1.4;display:flex;gap:8px;align-items:flex-start}
 .guide .gtxt{flex:1}
 .guide button{background:#fff;border:1px solid #e0b800;border-radius:8px;padding:4px 8px;font-size:14px;white-space:nowrap}
-.screen{flex:1;overflow-y:auto;padding:20px 18px 28px;-webkit-overflow-scrolling:touch}
+.screen{padding:18px 18px 26px}
 .k-small{font-size:14px;color:var(--sub)}
 .k-title{font-size:26px;font-weight:400;line-height:1.38;margin:6px 0 22px}
 .k-title b{font-weight:800}
@@ -96,8 +96,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-co
 @keyframes rot{to{transform:rotate(360deg)}}
 .center{text-align:center}
 .org{color:var(--org);font-weight:800}
-.toast{position:absolute;left:14px;right:14px;bottom:130px;background:rgba(20,20,20,.93);color:#fff;padding:14px 16px;border-radius:12px;font-size:17px;line-height:1.45;z-index:50;text-align:center}
-.modal{position:absolute;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;z-index:60;padding:20px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:452px;bottom:24px;background:rgba(20,20,20,.93);color:#fff;padding:14px 16px;border-radius:12px;font-size:17px;line-height:1.45;z-index:50;text-align:center}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;z-index:60;padding:20px}
 .modal .mbox{background:#fff;border-radius:16px;padding:22px 18px;max-width:380px;font-size:18px;line-height:1.5;text-align:center}
 /* 연습 첫 화면 */
 .intro h1{font-size:27px;line-height:1.35;margin:4px 0 10px}
@@ -129,7 +129,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-co
 </head>
 <body>
 <div class="frame" id="frame">
-  <div id="app" style="display:flex;flex-direction:column;height:100%"></div>
+  <div id="app"></div>
 </div>
 <script>
 (function(){
@@ -159,7 +159,7 @@ function reset(m){
 reset(null);
 
 /* ---------- 이동 ---------- */
-function go(s){S.screen=s;S.t=LIMIT;render();var sc=document.querySelector('.screen');if(sc)sc.scrollTop=0;}
+function go(s){S.screen=s;S.t=LIMIT;window.scrollTo(0,0);render();}
 var toastTimer;
 function toast(msg,ms){
   var old=document.querySelector('.toast');if(old)old.remove();
@@ -230,15 +230,18 @@ function hint(){
   }
   return null;
 }
+var scrollT;
 function refreshGuide(){
   var h=hint(),g=document.getElementById('gtxt');
   document.querySelectorAll('.hint').forEach(function(e){e.classList.remove('hint');});
   if(g)g.textContent=h?h.t:'';
   var gw=document.querySelector('.guide');if(gw)gw.style.display=h?'flex':'none';
   if(h&&h.id){var el=document.querySelector('[data-id="'+h.id+'"]');
-    if(el){el.classList.add('hint');var sc=document.querySelector('.screen');
-      if(sc&&sc.contains(el)){var r=el.getBoundingClientRect(),q=sc.getBoundingClientRect();
-        if(r.top<q.top||r.bottom>q.bottom)el.scrollIntoView({block:'center',behavior:'smooth'});}}}
+    if(el){el.classList.add('hint');
+      clearTimeout(scrollT);
+      scrollT=setTimeout(function(){   // 그린 뒤에 이동해야 적용됨. 손가락 표시가 가리지 않게 여유를 둠
+        if(!el.isConnected)return;var r=el.getBoundingClientRect();
+        if(r.top<40||r.bottom>window.innerHeight-60)window.scrollTo(0,Math.max(0,window.scrollY+r.top-window.innerHeight/2+r.height/2));},150);}}
   if(h)say(h.t);
 }
 
